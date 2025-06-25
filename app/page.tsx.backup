@@ -29,16 +29,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { createClient } from '@supabase/supabase-js'
-import ToolCard from "@/components/tools/ToolCard"
-import ToolGrid from "@/components/tools/ToolGrid"
-import FilterPanel from "@/components/tools/FilterPanel"
-import AuthModal from "@/components/auth/AuthModal"
-import CompareControls from "@/components/tools/CompareControls"
-import RecentlyViewed from "@/components/tools/RecentlyViewed"
-import ReviewModal from "@/components/tools/ReviewModal"
-import SubmitToolModal from "@/components/tools/SubmitToolModal"
-import CollectionsModal from "@/components/tools/CollectionsModal"
-import ComparisonModal from "@/components/tools/ComparisonModal"
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -1165,11 +1155,6 @@ const sanitizeReviewText = (text: string): string => {
 }
 
 export default function OSINTDirectory() {
-  // Tools state (dynamic from Supabase)
-  const [tools, setTools] = useState<Tool[]>([])
-  const [loadingTools, setLoadingTools] = useState(true)
-  const [fetchError, setFetchError] = useState(false)
-
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [sortBy, setSortBy] = useState("name-asc")
@@ -1215,41 +1200,6 @@ export default function OSINTDirectory() {
   const [reviewRating, setReviewRating] = useState(0)
   const [reviewError, setReviewError] = useState("")
   const [reviewLoading, setReviewLoading] = useState(false)
-
-  // Fetch tools from Supabase on mount
-  useEffect(() => {
-    let isMounted = true
-    setLoadingTools(true)
-    setFetchError(false)
-
-    const fetchTools = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('tools')
-          .select('*')
-        
-        if (!isMounted) return
-        
-        if (error || !data) {
-          setTools(fallbackTools)
-          setFetchError(true)
-        } else {
-          setTools(data as Tool[])
-        }
-        setLoadingTools(false)
-      } catch (err) {
-        if (!isMounted) return
-        console.warn('Error fetching tools:', err)
-        setTools(fallbackTools)
-        setFetchError(true)
-        setLoadingTools(false)
-      }
-    }
-
-    fetchTools()
-
-    return () => { isMounted = false }
-  }, [])
 
   // Load user, favorites and recently viewed from localStorage on mount
   useEffect(() => {
@@ -1676,66 +1626,259 @@ export default function OSINTDirectory() {
         </div>
 
         {/* Advanced Filters Panel */}
-        <FilterPanel
-          showFilters={showFilters}
-          pricingFilters={pricingFilters}
-          setPricingFilters={setPricingFilters}
-          noRegistrationFilter={noRegistrationFilter}
-          setNoRegistrationFilter={setNoRegistrationFilter}
-          statusFilters={statusFilters}
-          setStatusFilters={setStatusFilters}
-          clearAllFilters={clearAllFilters}
-        />
+        {showFilters && (
+          <Card className="mb-8 bg-white border-gray-200">
+            <CardContent className="p-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Pricing Filters */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Pricing</h3>
+                  <div className="space-y-2">
+                    {Object.entries(pricingFilters).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`pricing-${key}`}
+                          checked={value}
+                          onCheckedChange={(checked) =>
+                            setPricingFilters((prev) => ({ ...prev, [key]: checked as boolean }))
+                          }
+                        />
+                        <label htmlFor={`pricing-${key}`} className="text-sm text-gray-700">
+                          {key}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-        {/* Compare Mode Controls */}
-        <CompareControls
-          compareMode={compareMode}
-          selectedForComparison={selectedForComparison}
-          setShowComparison={setShowComparison}
-          setCompareMode={setCompareMode}
-          setSelectedForComparison={setSelectedForComparison}
-        />
+                {/* Registration Filter */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Registration</h3>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="no-registration"
+                      checked={noRegistrationFilter}
+                      onCheckedChange={(checked) => setNoRegistrationFilter(checked as boolean)}
+                    />
+                    <label htmlFor="no-registration" className="text-sm text-gray-700">
+                      No registration required
+                    </label>
+                  </div>
+                </div>
 
-        {/* Recently Viewed Section */}
-        <RecentlyViewed
-          recentTools={recentTools}
-          compareMode={compareMode}
-          handleToolClick={handleToolClick}
-          userReviews={userReviews}
-          mockReviews={mockReviews}
-        />
+                {/* Status Filters */}
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-3">Status</h3>
+                  <div className="space-y-2">
+                    {Object.entries(statusFilters).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`status-${key}`}
+                          checked={value}
+                          onCheckedChange={(checked) =>
+                            setStatusFilters((prev) => ({ ...prev, [key]: checked as boolean }))
+                          }
+                        />
+                        <label htmlFor={`status-${key}`} className="text-sm text-gray-700 capitalize">
+                          {key}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-        {/* Tools Grid */}
-        {loadingTools ? (
-          <div className="flex justify-center py-24">
-            <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
-            <span className="ml-3 text-slate-500 text-lg">Loading tools...</span>
-          </div>
-        ) : fetchError ? (
-          <div className="text-center py-12 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="text-2xl mb-2 opacity-60">⚠️</div>
-            <p className="text-amber-800 font-medium mb-1">Unable to load tools from database</p>
-            <p className="text-amber-600 text-sm">Using offline data - some tools may be outdated</p>
-          </div>
-        ) : null}
-        
-        {!loadingTools && (
-          <ToolGrid
-            tools={sortedTools}
-            onToolClick={handleToolClick}
-            onFavorite={toggleFavorite}
-            onCompareSelection={toggleCompareSelection}
-            onAddReview={handleAddReview}
-            favorites={favorites}
-            compareMode={compareMode}
-            selectedForComparison={selectedForComparison}
-            user={user}
-            userReviews={userReviews}
-            mockReviews={mockReviews}
-          />
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <Button variant="outline" size="sm" onClick={clearAllFilters} className="text-gray-600">
+                  Clear all filters
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        {!loadingTools && sortedTools.length === 0 && (
+        {/* Compare Mode Controls */}
+        {compareMode && (
+          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <p className="text-blue-800 font-medium">Compare Mode Active</p>
+                <p className="text-blue-600 text-sm">
+                  Select up to 3 tools to compare ({selectedForComparison.length}/3 selected)
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                {selectedForComparison.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowComparison(true)}
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                  >
+                    Compare Selected ({selectedForComparison.length})
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCompareMode(false)
+                    setSelectedForComparison([])
+                  }}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  Exit Compare
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Recently Viewed Section */}
+        {recentTools.length > 0 && !compareMode && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Recently Viewed</h2>
+              <span className="text-sm text-gray-500">{recentTools.length} items</span>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 px-1">
+              {recentTools.map((tool) => (
+                <Card
+                  key={`recent-${tool!.id}`}
+                  className="min-w-80 cursor-pointer bg-white border-gray-200 rounded-xl hover:shadow-lg hover:border-gray-300 transition-all duration-200 hover:-translate-y-1"
+                  onClick={() => handleToolClick(tool!.url, tool!.id)}
+                >
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="relative flex items-center justify-center w-3 h-3">
+                          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(tool!.status)}`} />
+                          {tool!.status === "online" && (
+                            <div className="absolute w-3 h-3 rounded-full bg-emerald-500 animate-ping opacity-75" />
+                          )}
+                        </div>
+                        <h4 className="font-medium text-gray-900">{tool!.name}</h4>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className="bg-gray-50 text-gray-700 border-gray-200 rounded-md px-2.5 py-1 text-xs font-medium">
+                          {tool!.category}
+                        </Badge>
+                        <Badge className={`rounded-md px-2.5 py-1 text-xs ${getPricingColor(tool!.pricing)}`}>
+                          {tool!.pricing}
+                        </Badge>
+                      </div>
+                    </div>
+                    {(getToolReviews(tool!.id, userReviews) || mockReviews[tool!.id as keyof typeof mockReviews]) && (
+                      <div className="mb-2">
+                        <StarRating
+                          rating={
+                            getToolReviews(tool!.id, userReviews)?.rating || 
+                            mockReviews[tool!.id as keyof typeof mockReviews]?.rating || 0
+                          }
+                          count={
+                            getToolReviews(tool!.id, userReviews)?.count || 
+                            mockReviews[tool!.id as keyof typeof mockReviews]?.count || 0
+                          }
+                        />
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-600 line-clamp-2">{tool!.description.split(".")[0]}.</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tools Grid */}
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-fr">
+          {sortedTools.map((tool) => (
+            <Card
+              key={tool.id}
+              className={`cursor-pointer bg-white border-gray-200 rounded-xl hover:shadow-lg hover:border-gray-300 transition-all duration-200 hover:-translate-y-1 h-full ${
+                compareMode && selectedForComparison.includes(tool.id) ? "ring-2 ring-blue-500 border-blue-300" : ""
+              }`}
+              onClick={() => handleToolClick(tool.url, tool.id)}
+            >
+              <CardContent className="p-6 h-full flex flex-col">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative flex items-center justify-center w-3 h-3">
+                      <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(tool.status)}`} />
+                      {tool.status === "online" && (
+                        <div className="absolute w-3 h-3 rounded-full bg-emerald-500 animate-ping opacity-75" />
+                      )}
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900">{tool.name}</h3>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {compareMode && (
+                      <button
+                        onClick={(e) => toggleCompareSelection(tool.id, e)}
+                        className={`p-1.5 rounded-md transition-colors duration-200 ${
+                          selectedForComparison.includes(tool.id)
+                            ? "bg-blue-100 text-blue-600"
+                            : "hover:bg-gray-100 text-gray-400"
+                        }`}
+                        disabled={!selectedForComparison.includes(tool.id) && selectedForComparison.length >= 3}
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                    )}
+                    {user && (
+                      <button
+                        onClick={(e) => handleAddReview(tool.id, e)}
+                        className="p-1.5 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                        title="Add Review"
+                      >
+                        <Plus className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => toggleFavorite(tool.id, e)}
+                      className="p-1.5 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                    >
+                      <Heart
+                        className={`w-4 h-4 transition-colors duration-200 ${
+                          favorites.includes(tool.id) ? "fill-red-500 text-red-500" : "text-gray-400 hover:text-red-500"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 mb-3 flex-wrap">
+                  <Badge className="bg-gray-50 text-gray-700 border-gray-200 rounded-md px-2.5 py-1 text-xs font-medium">
+                    {tool.category}
+                  </Badge>
+                  <Badge className={`rounded-md px-2.5 py-1 text-xs ${getPricingColor(tool.pricing)}`}>
+                    {tool.pricing}
+                  </Badge>
+                  {tool.registration && (
+                    <Badge className="bg-gray-50 text-gray-700 border-gray-200 rounded-md px-2.5 py-1 text-xs font-medium">
+                      Registration Required
+                    </Badge>
+                  )}
+                </div>
+                {(getToolReviews(tool.id, userReviews) || mockReviews[tool.id as keyof typeof mockReviews]) && (
+                  <div className="mb-3">
+                    <StarRating
+                      rating={
+                        getToolReviews(tool.id, userReviews)?.rating || 
+                        mockReviews[tool.id as keyof typeof mockReviews]?.rating || 0
+                      }
+                      count={
+                        getToolReviews(tool.id, userReviews)?.count || 
+                        mockReviews[tool.id as keyof typeof mockReviews]?.count || 0
+                      }
+                    />
+                  </div>
+                )}
+                <p className="text-gray-600 leading-relaxed text-sm flex-grow">{tool.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {sortedTools.length === 0 && (
           <div className="text-center py-24">
             <div className="text-6xl mb-6 opacity-20">🔍</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
@@ -1745,54 +1888,385 @@ export default function OSINTDirectory() {
       </div>
 
       {/* Auth Modal */}
-      <AuthModal
-        showAuthModal={showAuthModal}
-        setShowAuthModal={setShowAuthModal}
-        authTab={authTab}
-        setAuthTab={setAuthTab}
-        authEmail={authEmail}
-        setAuthEmail={setAuthEmail}
-        authPassword={authPassword}
-        setAuthPassword={setAuthPassword}
-        authName={authName}
-        setAuthName={setAuthName}
-        authError={authError}
-        authLoading={authLoading}
-        handleAuth={handleAuth}
-      />
+      <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
+        <DialogContent className="max-w-md bg-white border-gray-200">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900">Welcome to OSINT Atlas</DialogTitle>
+          </DialogHeader>
+          <Tabs value={authTab} onValueChange={setAuthTab} className="mt-4">
+            <TabsList className="grid w-full grid-cols-2 bg-gray-100 text-gray-600">
+              <TabsTrigger
+                value="signin"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 text-gray-600 data-[state=active]:font-medium"
+              >
+                Sign In
+              </TabsTrigger>
+              <TabsTrigger
+                value="signup"
+                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 text-gray-600 data-[state=active]:font-medium"
+              >
+                Sign Up
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="signin" className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email" className="text-gray-700 font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="signin-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  className="bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 focus:ring-1 placeholder:text-gray-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signin-password" className="text-gray-700 font-medium">
+                  Password
+                </Label>
+                <Input
+                  id="signin-password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 focus:ring-1 placeholder:text-gray-500"
+                />
+              </div>
+              {authError && (
+                <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{authError}</p>
+              )}
+              <Button
+                onClick={handleAuth}
+                disabled={authLoading}
+                className="w-full bg-slate-700 text-white hover:bg-slate-800 focus:ring-gray-200 focus:ring-1"
+              >
+                {authLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Sign In
+              </Button>
+            </TabsContent>
+            <TabsContent value="signup" className="space-y-4 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="signup-name" className="text-gray-700 font-medium">
+                  Name
+                </Label>
+                <Input
+                  id="signup-name"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={authName}
+                  onChange={(e) => setAuthName(e.target.value)}
+                  className="bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 focus:ring-1 placeholder:text-gray-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-email" className="text-gray-700 font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  className="bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 focus:ring-1 placeholder:text-gray-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password" className="text-gray-700 font-medium">
+                  Password
+                </Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="Create a password"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 focus:ring-1 placeholder:text-gray-500"
+                />
+              </div>
+              {authError && (
+                <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md border border-red-200">{authError}</p>
+              )}
+              <Button
+                onClick={handleAuth}
+                disabled={authLoading}
+                className="w-full bg-slate-700 text-white hover:bg-slate-800 focus:ring-gray-200 focus:ring-1"
+              >
+                {authLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Sign Up
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
 
       {/* Collections Modal */}
-      <CollectionsModal
-        showCollections={showCollections}
-        setShowCollections={setShowCollections}
-      />
+      <Dialog open={showCollections} onOpenChange={setShowCollections}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>My Collections</DialogTitle>
+          </DialogHeader>
+          <div className="py-8 text-center">
+            <div className="text-4xl mb-4 opacity-30">📚</div>
+            <p className="text-gray-500 mb-2">Feature coming soon!</p>
+            <p className="text-sm text-gray-400">Create and manage your custom tool collections.</p>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Review Modal */}
-      <ReviewModal
-        showAddReview={showAddReview}
-        setShowAddReview={setShowAddReview}
-        selectedToolForReview={selectedToolForReview}
-        tools={tools}
-        user={user}
-        userReviews={userReviews}
-        setUserReviews={setUserReviews}
-      />
+      <Dialog open={showAddReview} onOpenChange={setShowAddReview}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Add Review for {selectedToolForReview ? tools.find(t => t.id === selectedToolForReview)?.name : 'Tool'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            {/* Star Rating */}
+            <div className="space-y-2">
+              <Label className="text-gray-700 font-medium">Rating *</Label>
+              <InteractiveStarRating 
+                rating={reviewRating} 
+                onRatingChange={setReviewRating} 
+              />
+            </div>
+
+            {/* Comment */}
+            <div className="space-y-2">
+              <Label htmlFor="review-comment" className="text-gray-700 font-medium">
+                Comment *
+              </Label>
+              <Textarea
+                id="review-comment"
+                placeholder="Share your experience with this tool (minimum 20 characters)..."
+                value={reviewText}
+                onChange={(e) => setReviewText(sanitizeReviewText(e.target.value))}
+                rows={4}
+                maxLength={500}
+                className="bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 focus:ring-1 placeholder:text-gray-500"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Minimum 20 characters</span>
+                <span>{reviewText.length}/500</span>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {reviewError && (
+              <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md border border-red-200">
+                {reviewError}
+              </p>
+            )}
+
+            {/* Buttons */}
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAddReview(false)
+                  setReviewText("")
+                  setReviewRating(0)
+                  setReviewError("")
+                  setSelectedToolForReview(null)
+                }}
+                className="text-gray-600 border-gray-200 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSubmitReview}
+                disabled={reviewLoading || reviewRating === 0 || reviewText.trim().length < 20}
+                className="bg-slate-700 text-white hover:bg-slate-800 focus:ring-slate-400/20"
+              >
+                {reviewLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Submit Review
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Submit Tool Modal */}
-      <SubmitToolModal
-        showSubmitTool={showSubmitTool}
-        setShowSubmitTool={setShowSubmitTool}
-        categories={categories}
-      />
+      <Dialog open={showSubmitTool} onOpenChange={setShowSubmitTool}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Submit New Tool</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tool-name">Tool Name</Label>
+                <Input id="tool-name" placeholder="Enter tool name" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tool-category">Category</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.slice(1).map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tool-url">URL</Label>
+              <Input id="tool-url" placeholder="https://example.com" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tool-description">Description</Label>
+              <Textarea
+                id="tool-description"
+                placeholder="Describe what this tool does and how it's useful for OSINT..."
+                rows={4}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tool-pricing">Pricing</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select pricing" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Free">Free</SelectItem>
+                    <SelectItem value="Freemium">Freemium</SelectItem>
+                    <SelectItem value="Paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Registration Required</Label>
+                <div className="flex items-center space-x-2 pt-2">
+                  <Checkbox id="tool-registration" />
+                  <label htmlFor="tool-registration" className="text-sm">
+                    Requires user registration
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={() => setShowSubmitTool(false)}>
+                Cancel
+              </Button>
+              <Button>Submit Tool</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Comparison Modal */}
-      <ComparisonModal
-        showComparison={showComparison}
-        setShowComparison={setShowComparison}
-        comparisonTools={comparisonTools}
-        userReviews={userReviews}
-        mockReviews={mockReviews}
-      />
+      <Dialog open={showComparison} onOpenChange={setShowComparison}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Tool Comparison</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left p-3 font-medium text-gray-900">Feature</th>
+                    {comparisonTools.map((tool) => (
+                      <th key={tool!.id} className="text-left p-3 font-medium text-gray-900">
+                        {tool!.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 font-medium text-gray-700">Category</td>
+                    {comparisonTools.map((tool) => (
+                      <td key={tool!.id} className="p-3 text-gray-600">
+                        {tool!.category}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 font-medium text-gray-700">Pricing</td>
+                    {comparisonTools.map((tool) => (
+                      <td key={tool!.id} className="p-3">
+                        <Badge className={`${getPricingColor(tool!.pricing)} text-xs`}>{tool!.pricing}</Badge>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 font-medium text-gray-700">Registration</td>
+                    {comparisonTools.map((tool) => (
+                      <td key={tool!.id} className="p-3 text-gray-600">
+                        {tool!.registration ? "Required" : "Not required"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 font-medium text-gray-700">Status</td>
+                    {comparisonTools.map((tool) => (
+                      <td key={tool!.id} className="p-3">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(tool!.status)}`} />
+                          <span className="text-gray-600 capitalize">{tool!.status}</span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="p-3 font-medium text-gray-700">Rating</td>
+                    {comparisonTools.map((tool) => (
+                      <td key={tool!.id} className="p-3">
+                        {(getToolReviews(tool!.id, userReviews) || mockReviews[tool!.id as keyof typeof mockReviews]) ? (
+                          <StarRating
+                            rating={
+                              getToolReviews(tool!.id, userReviews)?.rating || 
+                              mockReviews[tool!.id as keyof typeof mockReviews]?.rating || 0
+                            }
+                            count={
+                              getToolReviews(tool!.id, userReviews)?.count || 
+                              mockReviews[tool!.id as keyof typeof mockReviews]?.count || 0
+                            }
+                          />
+                        ) : (
+                          <span className="text-gray-400 text-sm">No reviews</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-medium text-gray-700">Description</td>
+                    {comparisonTools.map((tool) => (
+                      <td key={tool!.id} className="p-3 text-gray-600 text-sm leading-relaxed">
+                        {tool!.description}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-6 flex justify-end space-x-3">
+              {comparisonTools.map((tool) => (
+                <Button
+                  key={tool!.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(tool!.url, "_blank")}
+                  className="text-slate-700 border-slate-300 hover:bg-slate-50"
+                >
+                  Visit {tool!.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="mt-24 border-t border-gray-200 bg-white py-12">
