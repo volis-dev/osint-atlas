@@ -198,4 +198,3 @@ export function retrySupabaseInit(): void {
 }
 
 // Export the type for use in components
-export type { Database }
