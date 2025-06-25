@@ -1489,19 +1489,19 @@ export default function OSINTDirectory() {
 
         {/* Search */}
         <div className="relative mb-10 max-w-2xl mx-auto">
-          <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
           <Input
             placeholder="Search tools by name, description, or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-14 pr-14 py-4 text-base bg-white border-gray-200 rounded-xl shadow-sm focus:border-slate-400 focus:ring-slate-400/20 focus:ring-2 transition-all duration-200"
+            className="pl-12 pr-12 py-3 text-base bg-white border-gray-200 rounded-lg shadow-sm focus:border-gray-300 focus:ring-gray-200 focus:ring-1 transition-all duration-200"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 z-10"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
