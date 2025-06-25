@@ -968,13 +968,13 @@ const getStatusColor = (status: string) => {
 const getPricingColor = (pricing: string) => {
   switch (pricing) {
     case "Free":
-      return "bg-green-100 text-green-800 border-green-200"
+      return "bg-green-50 text-green-700 border-green-200 font-medium"
     case "Freemium":
-      return "bg-blue-100 text-blue-800 border-blue-200"
+      return "bg-blue-50 text-blue-700 border-blue-200 font-medium"
     case "Paid":
-      return "bg-orange-100 text-orange-800 border-orange-200"
+      return "bg-orange-50 text-orange-700 border-orange-200 font-medium"
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200"
+      return "bg-gray-50 text-gray-700 border-gray-200 font-medium"
   }
 }
 
@@ -991,9 +991,9 @@ const StarRating = ({ rating, count }: { rating: number; count: number }) => {
             key={i}
             className={`w-3 h-3 ${
               i < fullStars
-                ? "fill-yellow-400 text-yellow-400"
+                ? "fill-white text-white"
                 : i === fullStars && hasHalfStar
-                  ? "fill-yellow-400/50 text-yellow-400"
+                  ? "fill-white/50 text-white"
                   : "text-gray-300"
             }`}
           />
@@ -1026,8 +1026,8 @@ const InteractiveStarRating = ({
           <Star
             className={`w-6 h-6 transition-colors duration-200 ${
               star <= rating
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300 hover:text-yellow-300"
+                ? "fill-white text-white"
+                : "text-gray-300 hover:text-gray-400"
             }`}
           />
         </button>
@@ -1424,24 +1424,24 @@ export default function OSINTDirectory() {
   const comparisonTools = selectedForComparison.map((id) => tools.find((tool) => tool.id === id)).filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Header */}
-        <div className="flex justify-between items-center mb-12">
+        <div className="flex justify-between items-center mb-16">
           <div className="text-center flex-1">
-            <h1 className="text-4xl font-medium text-gray-900 mb-2">OSINT Atlas</h1>
-            <p className="text-gray-600">Intelligence Tool Discovery Platform</p>
+            <h1 className="text-5xl font-bold text-gray-900 mb-3 tracking-tight">OSINT Atlas</h1>
+            <p className="text-gray-600 text-lg">Intelligence Tool Discovery Platform</p>
           </div>
 
           {/* Auth Section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {user ? (
               <>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowCollections(true)}
-                  className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50"
+                  className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50 shadow-sm"
                 >
                   My Collections
                 </Button>
@@ -1450,14 +1450,14 @@ export default function OSINTDirectory() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50"
+                      className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50 shadow-sm"
                     >
                       <User className="w-4 h-4 mr-2" />
                       {user.name}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-white border-gray-200">
-                    <DropdownMenuItem onClick={handleLogout} className="hover:bg-gray-50 focus:bg-gray-50">
+                  <DropdownMenuContent align="end" className="bg-white border-gray-200 shadow-lg">
+                    <DropdownMenuItem onClick={handleLogout} className="hover:bg-gray-50 focus:bg-gray-50 cursor-pointer">
                       <LogOut className="w-4 h-4 mr-2" />
                       Sign Out
                     </DropdownMenuItem>
@@ -1469,7 +1469,7 @@ export default function OSINTDirectory() {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowAuthModal(true)}
-                className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50"
+                className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50 shadow-sm px-6"
               >
                 Sign In
               </Button>
@@ -1478,43 +1478,47 @@ export default function OSINTDirectory() {
         </div>
 
         {/* Stats Counter */}
-        <div className="text-center mb-8">
-          <p className="text-gray-500">
-            Showing <span className="text-slate-700 font-medium">{sortedTools.length}</span> of{" "}
-            <span className="text-slate-700 font-medium">{tools.length}</span> tools
-          </p>
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100">
+            <p className="text-gray-600">
+              Showing <span className="text-slate-800 font-semibold">{sortedTools.length}</span> of{" "}
+              <span className="text-slate-800 font-semibold">{tools.length}</span> tools
+            </p>
+          </div>
         </div>
 
         {/* Search */}
-        <div className="relative mb-8 max-w-2xl mx-auto">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <div className="relative mb-10 max-w-2xl mx-auto">
+          <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <Input
-            placeholder="Search tools..."
+            placeholder="Search tools by name, description, or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 pr-12 py-3 bg-white border-gray-200 rounded-lg shadow-sm focus:border-slate-400 focus:ring-slate-400/20 focus:ring-2 transition-all duration-200"
+            className="pl-14 pr-14 py-4 text-base bg-white border-gray-200 rounded-xl shadow-sm focus:border-slate-400 focus:ring-slate-400/20 focus:ring-2 transition-all duration-200"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              className="absolute right-5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1"
             >
-              ✕
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           )}
         </div>
 
         {/* Filters and Controls */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-md font-normal transition-all duration-200 ${
+                className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
                   selectedCategory === category
                     ? "bg-slate-700 text-white hover:bg-slate-800 shadow-sm"
                     : "bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50"
@@ -1532,11 +1536,11 @@ export default function OSINTDirectory() {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50"
+              className="bg-white border-gray-200 text-gray-700 hover:border-slate-300 hover:bg-gray-50 min-w-[120px]"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
-              {showFilters ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+              {showFilters ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
             </Button>
 
             {/* Compare Mode */}
@@ -1571,7 +1575,7 @@ export default function OSINTDirectory() {
 
             {/* Sort Dropdown */}
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-48 bg-white border-gray-200 rounded-md focus:border-slate-400 focus:ring-slate-400/20 py-2 px-3">
+              <SelectTrigger className="w-44 bg-white border-gray-200 rounded-lg focus:border-slate-400 focus:ring-slate-400/20">
                 <SelectValue placeholder="Sort by..." />
               </SelectTrigger>
               <SelectContent className="bg-white border-gray-200 rounded-md shadow-lg">
@@ -1699,31 +1703,34 @@ export default function OSINTDirectory() {
 
         {/* Recently Viewed Section */}
         {recentTools.length > 0 && !compareMode && (
-          <div className="mb-8">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Recently Viewed</h2>
-            <div className="flex gap-4 overflow-x-auto pb-2">
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Recently Viewed</h2>
+              <span className="text-sm text-gray-500">{recentTools.length} items</span>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 px-1">
               {recentTools.map((tool) => (
                 <Card
                   key={`recent-${tool!.id}`}
-                  className="min-w-72 cursor-pointer bg-white border-gray-200 rounded-lg hover:shadow-md hover:border-gray-300 transition-all duration-200"
+                  className="min-w-80 cursor-pointer bg-white border-gray-200 rounded-xl hover:shadow-lg hover:border-gray-300 transition-all duration-200 hover:-translate-y-1"
                   onClick={() => handleToolClick(tool!.url, tool!.id)}
                 >
-                  <CardContent className="p-4">
+                  <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
-                        <div className="relative">
+                        <div className="relative flex items-center justify-center w-3 h-3">
                           <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(tool!.status)}`} />
                           {tool!.status === "online" && (
-                            <Loader2 className="w-2 h-2 absolute -top-0.5 -left-0.5 animate-spin text-emerald-500 opacity-50" />
+                            <div className="absolute w-3 h-3 rounded-full bg-emerald-500 animate-ping opacity-75" />
                           )}
                         </div>
                         <h4 className="font-medium text-gray-900">{tool!.name}</h4>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Badge className="bg-gray-100 text-gray-700 border-gray-200 rounded-md px-2 py-1 text-xs">
+                        <Badge className="bg-gray-50 text-gray-700 border-gray-200 rounded-md px-2.5 py-1 text-xs font-medium">
                           {tool!.category}
                         </Badge>
-                        <Badge className={`rounded-md px-2 py-1 text-xs ${getPricingColor(tool!.pricing)}`}>
+                        <Badge className={`rounded-md px-2.5 py-1 text-xs ${getPricingColor(tool!.pricing)}`}>
                           {tool!.pricing}
                         </Badge>
                       </div>
@@ -1751,22 +1758,22 @@ export default function OSINTDirectory() {
         )}
 
         {/* Tools Grid */}
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-fr">
           {sortedTools.map((tool) => (
             <Card
               key={tool.id}
-              className={`cursor-pointer bg-white border-gray-200 rounded-lg hover:shadow-md hover:border-gray-300 transition-all duration-200 ${
+              className={`cursor-pointer bg-white border-gray-200 rounded-xl hover:shadow-lg hover:border-gray-300 transition-all duration-200 hover:-translate-y-1 h-full ${
                 compareMode && selectedForComparison.includes(tool.id) ? "ring-2 ring-blue-500 border-blue-300" : ""
               }`}
               onClick={() => handleToolClick(tool.url, tool.id)}
             >
-              <CardContent className="p-6">
+              <CardContent className="p-6 h-full flex flex-col">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="relative">
+                    <div className="relative flex items-center justify-center w-3 h-3">
                       <div className={`w-2.5 h-2.5 rounded-full ${getStatusColor(tool.status)}`} />
                       {tool.status === "online" && (
-                        <Loader2 className="w-2 h-2 absolute -top-0.5 -left-0.5 animate-spin text-emerald-500 opacity-50" />
+                        <div className="absolute w-3 h-3 rounded-full bg-emerald-500 animate-ping opacity-75" />
                       )}
                     </div>
                     <h3 className="text-lg font-medium text-gray-900">{tool.name}</h3>
@@ -1806,15 +1813,15 @@ export default function OSINTDirectory() {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2 mb-3">
-                  <Badge className="bg-gray-100 text-gray-700 border-gray-200 rounded-md px-2 py-1 text-xs">
+                <div className="flex items-center space-x-2 mb-3 flex-wrap">
+                  <Badge className="bg-gray-50 text-gray-700 border-gray-200 rounded-md px-2.5 py-1 text-xs font-medium">
                     {tool.category}
                   </Badge>
-                  <Badge className={`rounded-md px-2 py-1 text-xs ${getPricingColor(tool.pricing)}`}>
+                  <Badge className={`rounded-md px-2.5 py-1 text-xs ${getPricingColor(tool.pricing)}`}>
                     {tool.pricing}
                   </Badge>
                   {tool.registration && (
-                    <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 rounded-md px-2 py-1 text-xs">
+                    <Badge className="bg-gray-50 text-gray-700 border-gray-200 rounded-md px-2.5 py-1 text-xs font-medium">
                       Registration Required
                     </Badge>
                   )}
@@ -1833,16 +1840,17 @@ export default function OSINTDirectory() {
                     />
                   </div>
                 )}
-                <p className="text-gray-600 leading-relaxed text-sm">{tool.description}</p>
+                <p className="text-gray-600 leading-relaxed text-sm flex-grow">{tool.description}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {sortedTools.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-4 opacity-30">🔍</div>
-            <p className="text-gray-500">No tools found matching your criteria</p>
+          <div className="text-center py-24">
+            <div className="text-6xl mb-6 opacity-20">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tools found</h3>
+            <p className="text-gray-500">Try adjusting your search or filters</p>
           </div>
         )}
       </div>
@@ -2229,13 +2237,13 @@ export default function OSINTDirectory() {
       </Dialog>
 
       {/* Footer */}
-      <footer className="mt-16 border-t border-gray-200 bg-white py-8">
+      <footer className="mt-24 border-t border-gray-200 bg-white py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start space-x-4 mb-2">
-                <h3 className="text-lg font-medium text-gray-900">OSINT Atlas</h3>
-                <span className="text-gray-300">•</span>
+                <h3 className="text-lg font-semibold text-gray-900">OSINT Atlas</h3>
+                <span className="text-gray-300 text-sm">•</span>
                 <p className="text-gray-600">Tool Discovery Platform</p>
               </div>
               <div className="flex items-center justify-center md:justify-start space-x-4 text-sm text-gray-500">
