@@ -196,5 +196,3 @@ export function tryGetSupabaseClient(): {
 export function retrySupabaseInit(): void {
   supabaseManager.retryInitialization()
 }
-
-// Export the type for use in components
