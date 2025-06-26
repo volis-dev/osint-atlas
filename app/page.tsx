@@ -40,10 +40,19 @@ import SubmitToolModal from "@/components/tools/SubmitToolModal"
 import CollectionsModal from "@/components/tools/CollectionsModal"
 import ComparisonModal from "@/components/tools/ComparisonModal"
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Initialize Supabase client with safe environment variable handling
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+// Create Supabase client with validation
+let supabase: ReturnType<typeof createClient>
+if (supabaseUrl && supabaseAnonKey) {
+  supabase = createClient(supabaseUrl, supabaseAnonKey)
+} else {
+  console.error('⚠️ Missing Supabase environment variables. App will use fallback data.')
+  // Create a dummy client that won't be used (tools will fall back to local data)
+  supabase = createClient('https://dummy.supabase.co', 'dummy-key')
+}
 
 // Tool interface
 interface Tool {
@@ -1234,7 +1243,7 @@ export default function OSINTDirectory() {
           setTools(fallbackTools)
           setFetchError(true)
         } else {
-          setTools(data as Tool[])
+          setTools(data as unknown as Tool[])
         }
         setLoadingTools(false)
       } catch (err) {
